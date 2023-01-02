@@ -7,7 +7,7 @@ const io = require('socket.io')(server);
 io.on('connection', (userSocket) => {
     console.log('connected');
     userSocket.on('send',(data)=>{
-      console.log(data);
+      io.to(userSocket.id).emit('fromServer',data)
     })
 });
 

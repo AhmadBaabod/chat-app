@@ -22,6 +22,7 @@ class _MyAppState extends State<MyApp> {
   late IO.Socket socket;
   TextEditingController msgController = TextEditingController();
   String now = DateTime.now().toString();
+  FocusNode focusNode = FocusNode();
   @override
   void initState() {
     initSocket();
@@ -32,6 +33,7 @@ class _MyAppState extends State<MyApp> {
   send(String msg, String sender) {
     socket.emit('send',
         {'sender': sender, 'msg': msg, 'time': DateTime.now().toString()});
+    msgController.text = '';
   }
 
   initSocket() {
@@ -46,6 +48,7 @@ class _MyAppState extends State<MyApp> {
     socket.onDisconnect((_) => print('Connection Disconnection'));
     socket.onConnectError((err) => print(err));
     socket.onError((err) => print(err));
+    socket.on('fromServer', (data) => print(data));
   }
 
   @override
@@ -60,6 +63,7 @@ class _MyAppState extends State<MyApp> {
             children: [
               Expanded(
                 child: TextFormField(
+                  focusNode: focusNode,
                   controller: msgController,
                   decoration:
                       InputDecoration(border: const OutlineInputBorder()),
