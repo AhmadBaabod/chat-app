@@ -1,6 +1,6 @@
 import 'dart:convert';
-
-import 'package:chat_app/module/msgModel.dart';
+import 'package:chat_app/model/msgModel.dart';
+import 'package:chat_app/widget/msg.dart';
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -22,6 +22,7 @@ class _MyAppState extends State<MyApp> {
   late IO.Socket socket;
   TextEditingController msgController = TextEditingController();
   String now = DateTime.now().toString();
+  List<Widget> listMsg = [];
   FocusNode focusNode = FocusNode();
   @override
   void initState() {
@@ -30,10 +31,14 @@ class _MyAppState extends State<MyApp> {
     super.initState();
   }
 
-  send(String msg, String sender) {
-    socket.emit('send',
-        {'sender': sender, 'msg': msg, 'time': DateTime.now().toString()});
-    msgController.text = '';
+  send(String msge, String sender) {
+    socket.emit('send', {
+      'type': 'sender',
+      'sender': sender,
+      'msg': msge,
+      'date': DateTime.now().toString()
+    });
+    msgController.clear();
   }
 
   initSocket() {
@@ -48,7 +53,14 @@ class _MyAppState extends State<MyApp> {
     socket.onDisconnect((_) => print('Connection Disconnection'));
     socket.onConnectError((err) => print(err));
     socket.onError((err) => print(err));
-    socket.on('fromServer', (data) => print(data));
+    socket.on('res', (data) {
+      listMsg.add(Msg(msg: data['msg']));
+      setState(() {});
+    });
+    socket.on('getRes', (data) {
+      listMsg.add(getMsg(msg: data['msg']));
+      setState(() {});
+    });
   }
 
   @override
@@ -56,7 +68,13 @@ class _MyAppState extends State<MyApp> {
     return SafeArea(
       child: Scaffold(
           body: Column(children: [
-        Expanded(child: Container()),
+        Expanded(
+            child: ListView.builder(
+          itemCount: listMsg.length,
+          itemBuilder: (BuildContext context, int index) {
+            return listMsg[index];
+          },
+        )),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Row(
